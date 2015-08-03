@@ -16,9 +16,10 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 
-from .views import index
+from .views import index, unsubscribe
 
 urlpatterns = [
-    url(r'^$', index),
+    url(r'^$', index, name='index'),
+    url(r'^unsubscribe/$', unsubscribe, name='unsubscribe'),
     url(r'^admin/', include(admin.site.urls)),
 ]

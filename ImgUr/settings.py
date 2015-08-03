@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -25,6 +26,7 @@ SECRET_KEY = '@a5t0(=1vl63(no-x5kj37m!#kx=vp+t-le7g0e^&gxxm4%4yr'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+HOST = 'http://localhost:8000'
 ALLOWED_HOSTS = []
 
 
@@ -37,6 +39,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'ImgUr',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -113,9 +116,17 @@ EMAIL_HOST = os.environ.get('EMAIL_HOST')
 EMAIL_PORT = os.environ.get('EMAIL_PORT')
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', False)
 
 # Celery
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+CELERYBEAT_SCHEDULE = {
+    'send-email': {
+        'task': 'ImgUr.tasks.send_email',
+        'schedule': timedelta(minutes=1),
+        'args': ()
+    },
+}
 
 
 try:

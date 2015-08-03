@@ -1,8 +1,7 @@
+from requests.exceptions import ConnectionError
 from itertools import islice
-from celery import Celery
 from imgurpython import ImgurClient
 from smtplib import SMTPException
-import logging
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -10,12 +9,12 @@ from django.core.mail import send_mail
 
 from ImgUr.models import Subscriber
 
-logger = logging.getLogger(__name__)
+from celery_init import app
 
-app = Celery('ImgUr')
-app.config_from_object(settings)
-app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
-
+import logging
+from celery.utils.log import get_task_logger
+genericLogger = get_task_logger(__name__)
+genericLogger.setLevel(logging.INFO)
 
 def matches_reqs(item):
     return \
@@ -24,28 +23,47 @@ def matches_reqs(item):
         (item.ups / item.downs > 8)
 
 
-def generate_email(name):
-    client = ImgurClient(settings.IMGUR['CLIENT_ID'],
-                         settings.IMGUR['CLIENT_SECRET'])
-    gallery = client.gallery(sort='top', window='week', page=0)
+def generate_email(current_site, name, email, images):
+    # Images is  a generator, we need to convert it to list first
+    images = list(images)
+    # fix images sizes to 640x640 max by adding prefix 'm' to resource name
+    for image in images:
+        parts = image.link.split('.')
+        parts[-2] += 'l'
+        image.link = '.'.join(parts)
+
     ctx = {
-        'gallery': islice((item for item in gallery if matches_reqs(item)), 0, 10),
+        # we need to build absolute url to be accessible from email
+        'current_site': current_site,
         'name': name,
+        'email': email,
+        'images': images,
     }
     return render_to_string('email.html', ctx)
 
 
-@app.task
+@app.task()
 def send_email():
+    genericLogger.info('Started send_email task')
+    client = ImgurClient(settings.IMGUR['CLIENT_ID'],
+                         settings.IMGUR['CLIENT_SECRET'])
+    try:
+        gallery = client.gallery(sort='top', window='week', page=0)
+    except ConnectionError:
+        genericLogger.error('Connection error')
+        return
+    images = islice((item for item in gallery if matches_reqs(item)), 0, 10)
     for s in Subscriber.objects.all():
-        email_content = generate_email(s.name)
+        genericLogger.info('Started user {}'.format(s.email))
+        email_content = generate_email(settings.HOST, s.name, s.email, images)
         try:
-            send_mail(subject="Look at the Picked Most Popular ImgUr Images for the Last Week",
-                      message=None,
+            send_mail(subject="Enjoy Most Popular ImgUr Images for the Last Week",
+                      message="",
                       from_email='noreply@bestimgur.com',
                       recipient_list=[s.email],
                       html_message=email_content)
+            genericLogger.info('Sent email to {}'.format(s.email))
         except SMTPException as e:
-            logger.warning(e)
-
+            # invalid email ?
+            genericLogger.error(e)
 

@@ -1,21 +1,22 @@
 <!DOCTYPE>
-<html>
-<head>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.0/css/materialize.min.css"/>
+<html style="box-sizing: border-box;font-family: &quot;Roboto&quot;, sans-serif;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;line-height: 1.5;font-weight: normal;color: rgba(0,0,0,0.87);">
+<head style="box-sizing: inherit;">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.0/css/materialize.min.css" style="box-sizing: inherit;">
 </head>
-<body>
+<body style="box-sizing: inherit;margin: 0;">
 Hi, {{ name }}!
 
 Here is the most popular ImgUr images for the last week:
 
-{% for item in gallery %}
-    <div class="row">
-        <div class="col s12">
-            <a href="http://imgur.com/gallery/{{ item.id }}">
-                <img src="{{ item.link }}m" alt="{{ item.title }}" ></a>
+{% for item in images %}
+    <div class="row" style="box-sizing: inherit;margin-left: auto;margin-right: auto;margin-bottom: 20px;">
+        <div class="col s12" style="box-sizing: border-box;float: left;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;padding: 0 0.75rem;width: 100%;margin-left: 0;">
+            <a href="http://imgur.com/gallery/{{ item.id }}" style="box-sizing: inherit;background-color: transparent;color: #039be5;text-decoration: none;-webkit-tap-highlight-color: transparent;">
+                <img src="{{ item.link }}" alt="{{ item.title }}" style="box-sizing: inherit;border: 0;"></a>
         </div>
     </div>
 {% endfor %}
+<a href="{{ current_site }}{% url 'unsubscribe' %}?email={{ email }}">Unsubscribe</a>
 </body>
 </html>
+

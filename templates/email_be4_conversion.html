@@ -1,0 +1,21 @@
+<!DOCTYPE>
+<html>
+<head>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.0/css/materialize.min.css"/>
+</head>
+<body>
+Hi, {{ name }}!
+
+Here is the most popular ImgUr images for the last week:
+
+{% for item in images %}
+    <div class="row">
+        <div class="col s12">
+            <a href="http://imgur.com/gallery/{{ item.id }}">
+                <img src="{{ item.link }}m" alt="{{ item.title }}" ></a>
+        </div>
+    </div>
+{% endfor %}
+</body>
+</html>
